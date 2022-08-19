@@ -9,7 +9,7 @@
     <main>
       <div v-for="status in sortedStatuses" :key="status.host" class="d-flex">
         <div class="lead pe-2">
-          <i class="bi" :class="{'bi-hourglass-top': status.age < 30, 'text-muted': status.age < 30, 'bi-hourglass-split': status.age >= 30 && status.age < 60, 'text-dark': status.age >= 30 && status.age < 60, 'bi-hourglass-bottom': status.age > 60, 'text-danger': status.age > 60}"></i>
+          <i class="bi" :class="{'bi-hourglass-top': status.age < 60, 'text-muted': status.age < 60, 'bi-hourglass-split': status.age >= 60 && status.age < 120, 'text-dark': status.age >= 60 && status.age < 120, 'bi-hourglass-bottom': status.age > 120, 'text-danger': status.age > 120}"></i>
           {{ status.host }}
         </div>
         <div v-for="(gpu, i) in status.gpus" :key="i" class="p-1">
@@ -69,7 +69,7 @@ export default {
   },
   mounted() {
     this.fetchStatuses();
-    setInterval(this.fetchStatuses, 1000 * 30);
+    setInterval(this.fetchStatuses, 1000 * 60);
     this.updateAges();
     setInterval(this.updateAges, 1000);
   },
