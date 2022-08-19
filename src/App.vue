@@ -12,7 +12,7 @@
             :class="{
               'bi-circle-fill': !status.unavailable,
               'bi-question-circle-fill': status.unavailable,
-              'text-black': !status.unavailable,
+              'text-dark': !status.unavailable,
               'text-warning': status.unavailable,
             }"
             :style="
