@@ -45,11 +45,13 @@
 import axios from "axios";
 import { sortBy } from "lodash";
 
+const AGE_UNAVAILABLE = 120;
+
 function updateAge(st) {
   st.age = Math.ceil((new Date() - st.datetime) / 1000);
-  st.unavailable = st.age >= 120;
+  st.unavailable = st.age >= AGE_UNAVAILABLE;
   try {
-    st.uptodateness = Math.min(Math.max(1 - st.age / 60, 0), 1);
+    st.uptodateness = Math.min(Math.max(1 - st.age / AGE_UNAVAILABLE, 0), 1);
     if (!Number.isFinite(st.uptodateness)) {
       st.uptodateness = 0;
     }
