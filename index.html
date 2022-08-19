@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <title>BRTX Status</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container-sm" id="app">
+    <header>
+      <h1>
+        BRTX Status
+      </h1>
+    </header>
+
+    <main>
+      <table>
+        <tr v-for="status in sortedStatuses" :key="status.host">
+          <td v-for="(i, gpu) in status.gpus" :key="i">
+            {{ gpu.load }}
+          </td>
+        </tr>
+      </table>
+    </main>
+
+    <footer>
+      <div>
+          Last updated: {{ sortedStatuses }}
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue@3"></script>
+  <script src="https://unpkg.com/axios@0.27.2"></script>
+  <script src="https://unpkg.com/lodash@1.3.0"></script>
+  <script>
+    const { createApp } = Vue
+  
+    createApp({
+      data() {
+        return {
+          statuses: {},
+        }
+      },
+      computed: {
+        sortedStatuses() {
+          return _.sortBy(Object.values(this.statuses), 'host');
+        },
+      },
+      mounted() {
+        const app = this;
+        axios.get('/601.json', {headers: {Accept: 'application/json'}})
+          .then(function (response) {
+            app.statuses[response.data.host] = response.data;
+          })
+          .catch(function (error) {
+            console.error(error);
+          });
+      },
+    }).mount('#app')
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
