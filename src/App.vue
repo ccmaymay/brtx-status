@@ -18,9 +18,9 @@
             :style="
               status.unavailable
                 ? ''
-                : `filter: opacity(${status.uptodatenessPercent}%)`
+                : `filter: opacity(${status.recentnessPercent}%)`
             "
-            :title="`Updated ${status.age} seconds ago`"
+            :title="`Updated ${Math.floor(status.age)} seconds ago`"
           ></i>
           {{ status.host }}
         </div>
@@ -48,17 +48,17 @@ import { sortBy } from "lodash";
 const AGE_UNAVAILABLE = 120;
 
 function updateAge(st) {
-  st.age = Math.ceil((new Date() - st.datetime) / 1000);
+  st.age = (new Date() - st.datetime) / 1000;
   st.unavailable = st.age >= AGE_UNAVAILABLE;
   try {
-    st.uptodateness = Math.min(Math.max(1 - st.age / AGE_UNAVAILABLE, 0), 1);
-    if (!Number.isFinite(st.uptodateness)) {
-      st.uptodateness = 0;
+    st.recentness = Math.min(Math.max(1 - st.age / 3, 0), 1);
+    if (!Number.isFinite(st.recentness)) {
+      st.recentness = 0;
     }
   } catch {
-    st.uptodateness = 0;
+    st.recentness = 0;
   }
-  st.uptodatenessPercent = Math.floor(100 * st.uptodateness);
+  st.recentnessPercent = Math.floor(100 * st.recentness);
   return st;
 }
 
@@ -113,7 +113,7 @@ export default {
     this.fetchStatuses();
     setInterval(this.fetchStatuses, 1000 * 60);
     this.updateAges();
-    setInterval(this.updateAges, 1000);
+    setInterval(this.updateAges, 100);
   },
 };
 </script>
