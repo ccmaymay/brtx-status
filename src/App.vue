@@ -13,8 +13,8 @@
           {{ status.host }}
         </div>
         <div v-for="(gpu, i) in status.gpus" :key="i" class="p-1">
-          <meter min="0" max="100" :value="gpu.memUsedPercent" :title="`${gpu.memUsedPercent}%`">
-            Load: {{ gpu.memUsedPercent }}%
+          <meter min="0" max="100" :value="gpu.memUsedPercent" :title="gpu.memUsedDescription">
+            {{ gpu.memUsedDescription }}
           </meter>
         </div>
       </div>
@@ -34,6 +34,9 @@ function processStatus(st) {
   st.gpus.forEach(function(gpu) {
     gpu.utilizationPercent = Math.ceil(100 * gpu.utilization);
     gpu.memUsedPercent = Math.ceil(100 * gpu.memory_used / gpu.memory_total);
+    const memUsedStr = Math.ceil(gpu.memory_used / 1000).toString() + ' GB';
+    const memTotalStr = Math.ceil(gpu.memory_total / 1000).toString() + ' GB';
+    gpu.memUsedDescription = `${memUsedStr} used / ${memTotalStr} total`
   });
   return st;
 }
