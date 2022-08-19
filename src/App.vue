@@ -68,7 +68,7 @@ export default {
   },
   mounted() {
     this.fetchStatuses();
-    setInterval(this.fetchStatuses, 1000 * 60);
+    setInterval(this.fetchStatuses, 1000 * 30);
     this.updateAges();
     setInterval(this.updateAges, 1000);
   },
