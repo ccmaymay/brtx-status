@@ -13,8 +13,8 @@
           {{ status.host }}
         </div>
         <div v-for="(gpu, i) in status.gpus" :key="i" class="p-1">
-          <meter min="0" max="100" :value="gpu.loadPercent" :title="`${gpu.loadPercent}%`">
-            Load: {{ gpu.loadPercent }}%
+          <meter min="0" max="100" :value="gpu.utilizationPercent" :title="`${gpu.utilizationPercent}%`">
+            Load: {{ gpu.utilizationPercent }}%
           </meter>
         </div>
       </div>
@@ -32,7 +32,8 @@ import { sortBy } from "lodash";
 function processStatus(st) {
   st.datetime = new Date(st.timestamp * 1000);
   st.gpus.forEach(function(gpu) {
-    gpu.loadPercent = Math.ceil(gpu.load * 100);
+    gpu.utilizationPercent = Math.ceil(100 * gpu.utilization);
+    gpu.memUsedPercent = Math.ceil(100 * gpu.memory_used / gpu.memory_total);
   });
   return st;
 }
