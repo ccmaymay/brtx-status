@@ -13,8 +13,8 @@
           {{ status.host }}
         </div>
         <div v-for="(gpu, i) in status.gpus" :key="i" class="p-1">
-          <meter min="0" max="100" :value="gpu.utilizationPercent" :title="`${gpu.utilizationPercent}%`">
-            Load: {{ gpu.utilizationPercent }}%
+          <meter min="0" max="100" :value="gpu.memUsedPercent" :title="`${gpu.memUsedPercent}%`">
+            Load: {{ gpu.memUsedPercent }}%
           </meter>
         </div>
       </div>
