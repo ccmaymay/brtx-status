@@ -5,8 +5,12 @@
     </header>
 
     <main>
-      <div v-for="status in sortedStatuses" :key="status.host" class="d-flex">
-        <div class="lead pe-2">
+      <div
+        v-for="status in sortedStatuses"
+        :key="status.host"
+        class="d-flex align-items-center"
+      >
+        <div class="mx-1">
           <i
             class="bi"
             :class="{
@@ -22,16 +26,18 @@
             "
             :title="`Updated ${Math.floor(status.age)} seconds ago`"
           ></i>
+        </div>
+        <div class="lead mx-2">
           {{ status.host }}
         </div>
-        <div v-for="(gpu, i) in status.gpus" :key="i" class="p-1">
+        <div v-for="(gpu, i) in status.gpus" :key="i" class="mx-1">
           <meter
             min="0"
             max="100"
             :value="gpu.memUsedPercent"
             :title="`GPU ${i} memory: ${gpu.memUsedDescription}`"
           >
-            GPU {{i}} memory: {{ gpu.memUsedDescription }}
+            GPU {{ i }} memory: {{ gpu.memUsedDescription }}
           </meter>
         </div>
       </div>
