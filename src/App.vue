@@ -29,9 +29,9 @@
             min="0"
             max="100"
             :value="gpu.memUsedPercent"
-            :title="gpu.memUsedDescription"
+            :title="`GPU ${i} memory: ${gpu.memUsedDescription}`"
           >
-            {{ gpu.memUsedDescription }}
+            GPU {{i}} memory: {{ gpu.memUsedDescription }}
           </meter>
         </div>
       </div>
@@ -45,39 +45,38 @@
 import axios from "axios";
 import { sortBy } from "lodash";
 
-const AGE_UNAVAILABLE = 120;
+// Mark node as unavailable at 5 * 60 seconds
+const AGE_UNAVAILABLE = 5 * 60;
+
+// Mark update as recent when within last 2 seconds
+const RECENTNESS_THRESHOLD = 2;
+
+// Attempt to retrieve new status every 60 seconds
+const RETRIEVAL_RATE = 60;
+
+// Names of nodes (hosts) to show
+const NODES = [601, 602, 603, 604, 605, 606].map((i) => `brtx${i}`);
 
 function updateAge(st) {
-  st.age = (new Date() - st.datetime) / 1000;
-  st.unavailable = st.age >= AGE_UNAVAILABLE;
-  try {
-    st.recentness = Math.min(Math.max(1 - st.age / 3, 0), 1);
-    if (!Number.isFinite(st.recentness)) {
-      st.recentness = 0;
-    }
-  } catch {
-    st.recentness = 0;
-  }
-  st.recentnessPercent = Math.floor(100 * st.recentness);
-  return st;
-}
+  // Mark as unavailable if either:
+  // 1. We weren't able to retrieve status from the server recently or
+  // 2. The retrieved status does not have a recent timestamp
+  const clientAge = (new Date() - st.retrievedDatetime) / 1000;
+  const serverAge = (new Date() - st.datetime) / 1000;
+  st.unavailable = clientAge >= AGE_UNAVAILABLE || serverAge >= AGE_UNAVAILABLE;
 
-function processStatus(st) {
-  st.datetime = new Date(st.timestamp * 1000);
-  updateAge(st);
-  st.gpus.forEach(function (gpu) {
-    gpu.utilizationPercent = st.unavailable
-      ? 0
-      : Math.ceil(100 * gpu.utilization);
-    gpu.memUsedPercent = st.unavailable
-      ? 0
-      : Math.ceil(100 * (gpu.memory_used / gpu.memory_total));
-    const memUsedStr = Math.ceil(gpu.memory_used / 1000).toString() + " GB";
-    const memTotalStr = Math.ceil(gpu.memory_total / 1000).toString() + " GB";
-    gpu.memUsedDescription = st.unavailable
-      ? "Unavailable"
-      : `${memUsedStr} used / ${memTotalStr} total`;
-  });
+  // Use number of seconds since last retrieval as measurement of age
+  st.age = clientAge;
+
+  // Mark update as recent if both:
+  // 1. The last retrieval yielded a status with a new timestamp and
+  // 2. The last retrieval was relatively recent (last few seconds)
+  st.recentness =
+    st.timestamp !== st.previousTimestamp
+      ? Math.min(Math.max(1 - st.age / RECENTNESS_THRESHOLD, 0), 1)
+      : 0;
+  st.recentnessPercent = Math.floor(100 * st.recentness);
+
   return st;
 }
 
@@ -93,25 +92,44 @@ export default {
     },
   },
   methods: {
-    fetchStatuses() {
-      const app = this;
+    retrieveStatuses() {
       const axiosOptions = { headers: { Accept: "application/json" } };
-      [601, 602, 603, 604, 605, 606].forEach((brtxIndex) =>
+      NODES.forEach((node) =>
         axios
-          .get(`/brtx${brtxIndex}.json`, axiosOptions)
-          .then(function (response) {
-            app.statuses[response.data.host] = processStatus(response.data);
-          })
+          .get(`/${node}.json`, axiosOptions)
+          .then((response) => this.processStatusUpdate(response.data))
           .catch((error) => console.error(error))
       );
+    },
+    processStatusUpdate(st) {
+      st.previousTimestamp =
+        st.host in this.statuses ? this.statuses[st.host].timestamp : null;
+      st.datetime = new Date(st.timestamp * 1000);
+      st.retrievedDatetime = new Date();
+      updateAge(st);
+      st.gpus.forEach(function (gpu) {
+        gpu.utilizationPercent = st.unavailable
+          ? 0
+          : Math.ceil(100 * gpu.utilization);
+        gpu.memUsedPercent = st.unavailable
+          ? 0
+          : Math.ceil(100 * (gpu.memory_used / gpu.memory_total));
+        const memUsedStr = Math.ceil(gpu.memory_used / 1000).toString() + " GB";
+        const memTotalStr =
+          Math.ceil(gpu.memory_total / 1000).toString() + " GB";
+        gpu.memUsedDescription = st.unavailable
+          ? "Unavailable"
+          : `${memUsedStr} used / ${memTotalStr} total`;
+      });
+      this.statuses[st.host] = st;
     },
     updateAges() {
       Object.values(this.statuses).forEach(updateAge);
     },
   },
   mounted() {
-    this.fetchStatuses();
-    setInterval(this.fetchStatuses, 1000 * 60);
+    this.retrieveStatuses();
+    setInterval(this.retrieveStatuses, 1000 * RETRIEVAL_RATE);
     this.updateAges();
     setInterval(this.updateAges, 100);
   },
