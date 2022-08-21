@@ -43,7 +43,14 @@
       </div>
     </main>
 
-    <footer></footer>
+    <footer class="p-2 mt-4">
+      <p class="text-muted">
+        <small
+          >Last update:
+          {{ lastUpdateDatetime ? lastUpdateDatetime : "None" }}</small
+        >
+      </p>
+    </footer>
   </div>
 </template>
 
@@ -63,7 +70,7 @@ const RETRIEVAL_RATE = 60;
 // Names of nodes (hosts) to show
 const NODES = [601, 602, 603, 604, 605, 606].map((i) => `brtx${i}`);
 
-function updateAge(st) {
+function setAge(st) {
   // Mark as unavailable if either:
   // 1. We weren't able to retrieve status from the server recently or
   // 2. The retrieved status does not have a recent timestamp
@@ -82,14 +89,13 @@ function updateAge(st) {
       ? Math.min(Math.max(1 - st.age / RECENTNESS_THRESHOLD, 0), 1)
       : 0;
   st.recentnessPercent = Math.floor(100 * st.recentness);
-
-  return st;
 }
 
 export default {
   data() {
     return {
       statuses: {},
+      lastUpdateDatetime: null,
     };
   },
   computed: {
@@ -108,11 +114,13 @@ export default {
       );
     },
     processStatusUpdate(st) {
+      this.lastUpdateDatetime = new Date();
+
       st.previousTimestamp =
         st.host in this.statuses ? this.statuses[st.host].timestamp : null;
       st.datetime = new Date(st.timestamp * 1000);
       st.retrievedDatetime = new Date();
-      updateAge(st);
+      setAge(st);
       st.gpus.forEach(function (gpu) {
         gpu.utilizationPercent = st.unavailable
           ? 0
@@ -129,15 +137,15 @@ export default {
       });
       this.statuses[st.host] = st;
     },
-    updateAges() {
-      Object.values(this.statuses).forEach(updateAge);
+    setAges() {
+      Object.values(this.statuses).forEach(setAge);
     },
   },
   mounted() {
     this.retrieveStatuses();
     setInterval(this.retrieveStatuses, 1000 * RETRIEVAL_RATE);
-    this.updateAges();
-    setInterval(this.updateAges, 100);
+    this.setAges();
+    setInterval(this.setAges, 100);
   },
 };
 </script>
