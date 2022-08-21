@@ -1,6 +1,6 @@
 <template>
   <div class="container-sm">
-    <header>
+    <header class="mb-2">
       <h1 class="h1-display">BRTX GPU Status</h1>
     </header>
 
@@ -43,12 +43,14 @@
       </div>
     </main>
 
-    <footer class="p-2 mt-4">
+    <footer class="p-2 mt-2">
       <p class="text-muted">
-        <small
-          >Last update:
-          {{ lastUpdateDatetime ? lastUpdateDatetime : "None" }}</small
-        >
+        <small>
+          Last update:
+          {{
+            lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None"
+          }}
+        </small>
       </p>
     </footer>
   </div>
