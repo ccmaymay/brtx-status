@@ -1,58 +1,83 @@
 <template>
   <div class="container-sm">
-    <header class="mb-2">
-      <h1 class="h1-display">BRTX GPU Status</h1>
+    <header>
+      <h1>BRTX GPU Status</h1>
     </header>
 
     <main>
-      <div
-        v-for="status in sortedStatuses"
-        :key="status.host"
-        class="d-flex align-items-center"
-      >
-        <div class="mx-1">
-          <i
-            class="bi"
-            :class="{
-              'bi-circle-fill': !status.unavailable,
-              'bi-question-circle-fill': status.unavailable,
-              'text-dark': !status.unavailable,
-              'text-warning': status.unavailable,
-            }"
-            :style="
-              status.unavailable
-                ? ''
-                : `filter: opacity(${status.recentnessPercent}%)`
-            "
-            :title="`Updated ${Math.floor(status.age)} seconds ago`"
-          ></i>
-        </div>
-        <div class="lead mx-2">
-          {{ status.host }}
-        </div>
-        <div v-for="(gpu, i) in status.gpus" :key="i" class="mx-1">
-          <meter
-            min="0"
-            max="100"
-            :value="gpu.memUsedPercent"
-            :title="`GPU ${i} memory: ${gpu.memUsedDescription}`"
-          >
-            GPU {{ i }} memory: {{ gpu.memUsedDescription }}
-          </meter>
-        </div>
-      </div>
-    </main>
-
-    <footer class="p-2 mt-2">
-      <p class="text-muted">
-        <small>
+      <table class="table table-sm table-borderless align-middle text-center">
+        <thead>
+          <tr>
+            <th></th>
+            <th scope="col"></th>
+            <th scope="col" colspan="8" class="border-start">GPU</th>
+            <th scope="col" colspan="2" class="border-start">Disk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="status in sortedStatuses" :key="status.host">
+            <td>
+              <i
+                class="bi"
+                :class="{
+                  'bi-circle-fill': !status.unavailable,
+                  'bi-question-circle-fill': status.unavailable,
+                  'text-dark': !status.unavailable,
+                  'text-warning': status.unavailable,
+                }"
+                :style="
+                  status.unavailable
+                    ? ''
+                    : `filter: opacity(${status.recentnessPercent}%)`
+                "
+                :title="`Updated ${Math.floor(status.age)} seconds ago`"
+              ></i>
+            </td>
+            <th scope="row">
+              {{ status.host }}
+            </th>
+            <td
+              v-for="(gpu, i) in status.gpus"
+              :key="i"
+              :class="{ 'border-start': i === 0 }"
+            >
+              <meter
+                min="0"
+                max="100"
+                high="67"
+                :value="gpu.memUsedPercent"
+                :title="`GPU ${i} memory: ${gpu.memUsedDescription}`"
+              >
+                GPU {{ i }} memory: {{ gpu.memUsedDescription }}
+              </meter>
+            </td>
+            <td
+              v-for="(disk, i) in status.disks"
+              :key="disk.mountpoint"
+              :class="{ 'border-start': i === 0 }"
+            >
+              <meter
+                min="0"
+                max="100"
+                high="67"
+                :value="disk.storageUsedPercent"
+                :title="`${disk.mountpoint}: ${disk.storageUsedDescription}`"
+              >
+                {{ disk.mountpoint }}: {{ disk.storageUsedDescription }}
+              </meter>
+            </td>
+          </tr>
+        </tbody>
+        <caption>
           Last update:
           {{
             lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None"
           }}
-        </small>
-      </p>
-    </footer>
+        </caption>
+      </table>
+    </main>
+
+    <footer></footer>
   </div>
 </template>
 
@@ -136,6 +161,16 @@ export default {
         gpu.memUsedDescription = st.unavailable
           ? "Unavailable"
           : `${memUsedStr} used / ${memTotalStr} total`;
+      });
+      st.disks.forEach(function (disk) {
+        disk.storageUsedPercent = st.unavailable
+          ? 0
+          : Math.ceil(100 * (disk.storage_used / disk.storage_total));
+        const storageUsedStr = disk.storage_used.toString() + " GB";
+        const storageTotalStr = disk.storage_total.toString() + " GB";
+        disk.storageUsedDescription = st.unavailable
+          ? "Unavailable"
+          : `${storageUsedStr} used / ${storageTotalStr} total`;
       });
       this.statuses[st.host] = st;
     },
