@@ -1,7 +1,7 @@
 <template>
   <div class="container-sm">
     <header>
-      <h1>BRTX GPU Status</h1>
+      <h1>BRTX Status</h1>
     </header>
 
     <main>
