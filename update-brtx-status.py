@@ -4,24 +4,47 @@ import json
 import platform
 from subprocess import run
 from time import time
+from typing import Any, Dict, Sequence
 
 import boto3
 
 BUCKET_NAME = 'brtx-status'
-COMMAND = (
+DF_COMMAND = (
+    'df',
+    '-BG',
+)
+MOUNTPOINTS_TO_WATCH = ('/srv/local1', '/srv/local2')
+NVIDIA_SMI_COMMAND = (
     'nvidia-smi',
     '--query-gpu=utilization.gpu,memory.used,memory.total',
     '--format=csv,noheader,nounits',
 )
 
 
-def parse_line(line):
+def run_command_and_return_stdout(command: Sequence[str]) -> str:
+    return run(command, check=True, capture_output=True, text=True).stdout
+
+
+def parse_nvidia_smi_line(line: str) -> Dict[str, Any]:
     values = [v.strip() for v in line.split(',')]
     return {
         'utilization': float(values[0]),
         'memory_used': int(values[1]),
         'memory_total': int(values[2]),
     }
+
+
+def parse_df_line(line: str) -> Dict[str, Any]:
+    [device, size, used, available, usage_percent, mountpoint] = line.split()
+    return {
+        'mountpoint': mountpoint,
+        'storage_used': int(used[:-1] if used.endswith('G') else used),
+        'storage_total': int(size[:-1] if size.endswith('G') else size),
+    }
+
+
+def get_mountpoint(disk_status: Dict[str, Any]) -> str:
+    return disk_status['mountpoint']
 
 
 timestamp = int(time())
@@ -32,12 +55,21 @@ status = {
     'host': host,
     'timestamp': timestamp,
     'gpus': [
-        parse_line(line)
-        for line in run(
-            COMMAND,
-            check=True, capture_output=True, text=True,
-        ).stdout.strip().split('\n')
+        parse_nvidia_smi_line(line)
+        for line in run_command_and_return_stdout(NVIDIA_SMI_COMMAND).strip().split('\n')
     ],
+    'disks': sorted(
+        [
+            disk_status
+            for disk_status in [
+                parse_df_line(line)
+                for (i, line) in enumerate(run_command_and_return_stdout(DF_COMMAND).strip().split('\n'))
+                if i > 0
+            ]
+            if disk_status['mountpoint'] in MOUNTPOINTS_TO_WATCH
+        ],
+        key=get_mountpoint,
+    ),
 }
 
 key_name = f'{host}.json'
