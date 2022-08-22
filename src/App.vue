@@ -155,9 +155,8 @@ export default {
         gpu.memUsedPercent = st.unavailable
           ? 0
           : Math.ceil(100 * (gpu.memory_used / gpu.memory_total));
-        const memUsedStr = Math.ceil(gpu.memory_used / 1000).toString() + " GB";
-        const memTotalStr =
-          Math.ceil(gpu.memory_total / 1000).toString() + " GB";
+        const memUsedStr = gpu.memory_used.toString() + " MB";
+        const memTotalStr = gpu.memory_total.toString() + " MB";
         gpu.memUsedDescription = st.unavailable
           ? "Unavailable"
           : `${memUsedStr} used / ${memTotalStr} total`;
