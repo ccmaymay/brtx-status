@@ -10,6 +10,7 @@
           <tr>
             <th scope="col" colspan="2" class="ps-3 pe-2"></th>
             <th scope="col" colspan="8" class="border-start ps-3 pe-3">GPU</th>
+            <th scope="col" class="border-start ps-3 pe-3">Mem</th>
             <th scope="col" colspan="2" class="border-start ps-3 pe-3">Disk</th>
           </tr>
         </thead>
@@ -49,6 +50,17 @@
                 :title="`GPU ${i} memory: ${gpu.memoryUsedDescription}`"
               >
                 GPU {{ i }} memory: {{ gpu.memoryUsedDescription }}
+              </meter>
+            </td>
+            <td class="border-start ps-3 pe-3">
+              <meter
+                min="0"
+                max="100"
+                high="67"
+                :value="status.memory.memoryUsedPercent"
+                :title="`Main memory: ${status.memory.memoryUsedDescription}`"
+              >
+                Main memory: {{ status.memory.memoryUsedDescription }}
               </meter>
             </td>
             <td
@@ -123,6 +135,8 @@ function setAge(st) {
       disk.storageUsedPercent = 0;
       disk.storageUsedDescription = "Unavailable";
     });
+    st.memory.memoryUsedPercent = 0;
+    st.memory.memoryUsedDescription = "Unavailable";
   }
   // Use number of seconds since last retrieval as measurement of age
   st.age = clientAge;
@@ -168,18 +182,36 @@ export default {
         gpu.memoryUsedPercent = Math.ceil(
           100 * (gpu.memory_used / gpu.memory_total)
         );
-        const memoryUsedStr = gpu.memory_used.toString() + " MB";
-        const memoryTotalStr = gpu.memory_total.toString() + " MB";
+        const memoryUsedStr = `${gpu.memory_used.toString()} ${
+          gpu.memory_unit
+        }`;
+        const memoryTotalStr = `${gpu.memory_total.toString()} ${
+          gpu.memory_unit
+        }`;
         gpu.memoryUsedDescription = `${memoryUsedStr} used / ${memoryTotalStr} total`;
       });
       st.disks.forEach(function (disk) {
         disk.storageUsedPercent = Math.ceil(
           100 * (disk.storage_used / disk.storage_total)
         );
-        const storageUsedStr = disk.storage_used.toString() + " GB";
-        const storageTotalStr = disk.storage_total.toString() + " GB";
+        const storageUsedStr = `${disk.storage_used.toString()} ${
+          disk.storage_unit
+        }`;
+        const storageTotalStr = `${disk.storage_total.toString()} ${
+          disk.storage_unit
+        }`;
         disk.storageUsedDescription = `${storageUsedStr} used / ${storageTotalStr} total`;
       });
+      st.memory.memoryUsedPercent = Math.ceil(
+        100 * (st.memory.memory_used / st.memory.memory_total)
+      );
+      const memoryUsedStr = `${st.memory.memory_used.toString()} ${
+        st.memory.memory_unit
+      }`;
+      const memoryTotalStr = `${st.memory.memory_total.toString()} ${
+        st.memory.memory_unit
+      }`;
+      st.memory.memoryUsedDescription = `${memoryUsedStr} used / ${memoryTotalStr} total`;
 
       setAge(st);
 
