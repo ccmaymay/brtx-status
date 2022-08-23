@@ -19,7 +19,8 @@
               <i
                 class="bi"
                 :class="{
-                  'bi-check-circle-fill': !status.unavailable && status.isRecent,
+                  'bi-check-circle-fill':
+                    !status.unavailable && status.isRecent,
                   'bi-circle-fill': !status.unavailable && !status.isRecent,
                   'bi-question-circle-fill': status.unavailable,
                   'text-success': !status.unavailable,
@@ -44,10 +45,10 @@
                 min="0"
                 max="100"
                 high="67"
-                :value="gpu.memUsedPercent"
-                :title="`GPU ${i} memory: ${gpu.memUsedDescription}`"
+                :value="gpu.memoryUsedPercent"
+                :title="`GPU ${i} memory: ${gpu.memoryUsedDescription}`"
               >
-                GPU {{ i }} memory: {{ gpu.memUsedDescription }}
+                GPU {{ i }} memory: {{ gpu.memoryUsedDescription }}
               </meter>
             </td>
             <td
@@ -108,6 +109,18 @@ function setAge(st) {
   const serverAge = (new Date() - st.datetime) / 1000;
   st.unavailable = clientAge >= AGE_UNAVAILABLE || serverAge >= AGE_UNAVAILABLE;
 
+  // Update status based on availability
+  if (st.unavailable) {
+    st.gpus.forEach(function (gpu) {
+      gpu.utilizationPercent = 0;
+      gpu.memoryUsedPercent = 0;
+      gpu.memoryUsedDescription = "Unavailable";
+    });
+    st.disks.forEach(function (disk) {
+      disk.storageUsedPercent = 0;
+      disk.storageUsedDescription = "Unavailable";
+    });
+  }
   // Use number of seconds since last retrieval as measurement of age
   st.age = clientAge;
 
@@ -115,8 +128,7 @@ function setAge(st) {
   // 1. The last retrieval yielded a status with a new timestamp and
   // 2. The last retrieval was relatively recent (last few seconds)
   st.isRecent =
-    st.timestamp !== st.previousTimestamp &&
-    st.age < RECENTNESS_THRESHOLD;
+    st.timestamp !== st.previousTimestamp && st.age < RECENTNESS_THRESHOLD;
 }
 
 export default {
@@ -148,30 +160,26 @@ export default {
         st.host in this.statuses ? this.statuses[st.host].timestamp : null;
       st.datetime = new Date(st.timestamp * 1000);
       st.retrievedDatetime = new Date();
-      setAge(st);
       st.gpus.forEach(function (gpu) {
-        gpu.utilizationPercent = st.unavailable
-          ? 0
-          : Math.ceil(100 * gpu.utilization);
-        gpu.memUsedPercent = st.unavailable
-          ? 0
-          : Math.ceil(100 * (gpu.memory_used / gpu.memory_total));
-        const memUsedStr = gpu.memory_used.toString() + " MB";
-        const memTotalStr = gpu.memory_total.toString() + " MB";
-        gpu.memUsedDescription = st.unavailable
-          ? "Unavailable"
-          : `${memUsedStr} used / ${memTotalStr} total`;
+        gpu.utilizationPercent = Math.ceil(100 * gpu.utilization);
+        gpu.memoryUsedPercent = Math.ceil(
+          100 * (gpu.memory_used / gpu.memory_total)
+        );
+        const memoryUsedStr = gpu.memory_used.toString() + " MB";
+        const memoryTotalStr = gpu.memory_total.toString() + " MB";
+        gpu.memoryUsedDescription = `${memoryUsedStr} used / ${memoryTotalStr} total`;
       });
       st.disks.forEach(function (disk) {
-        disk.storageUsedPercent = st.unavailable
-          ? 0
-          : Math.ceil(100 * (disk.storage_used / disk.storage_total));
+        disk.storageUsedPercent = Math.ceil(
+          100 * (disk.storage_used / disk.storage_total)
+        );
         const storageUsedStr = disk.storage_used.toString() + " GB";
         const storageTotalStr = disk.storage_total.toString() + " GB";
-        disk.storageUsedDescription = st.unavailable
-          ? "Unavailable"
-          : `${storageUsedStr} used / ${storageTotalStr} total`;
+        disk.storageUsedDescription = `${storageUsedStr} used / ${storageTotalStr} total`;
       });
+
+      setAge(st);
+
       this.statuses[st.host] = st;
     },
     setAges() {
