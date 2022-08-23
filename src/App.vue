@@ -8,7 +8,7 @@
       <table class="table table-sm table-borderless align-middle text-center">
         <thead>
           <tr>
-            <th scope="col" colspan="2" class="ps-3 pe-2"></th>
+            <th scope="col" colspan="2" class="ps-3 pe-3"></th>
             <th scope="col" colspan="8" class="border-start ps-3 pe-3">GPU</th>
             <th scope="col" class="border-start ps-3 pe-3">Mem</th>
             <th scope="col" colspan="2" class="border-start ps-3 pe-3">Disk</th>
@@ -30,7 +30,7 @@
                 :title="`Updated ${Math.floor(status.age)} seconds ago`"
               ></i>
             </td>
-            <th scope="row" class="pe-2">
+            <th scope="row" class="pe-3">
               {{ status.host }}
             </th>
             <td
