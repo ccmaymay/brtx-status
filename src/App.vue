@@ -19,16 +19,12 @@
               <i
                 class="bi"
                 :class="{
-                  'bi-circle-fill': !status.unavailable,
+                  'bi-check-circle-fill': !status.unavailable && status.isRecent,
+                  'bi-circle-fill': !status.unavailable && !status.isRecent,
                   'bi-question-circle-fill': status.unavailable,
-                  'text-dark': !status.unavailable,
+                  'text-success': !status.unavailable,
                   'text-warning': status.unavailable,
                 }"
-                :style="
-                  status.unavailable
-                    ? ''
-                    : `filter: opacity(${status.recentnessPercent}%)`
-                "
                 :title="`Updated ${Math.floor(status.age)} seconds ago`"
               ></i>
             </td>
@@ -95,8 +91,8 @@ import { sortBy } from "lodash";
 // Mark node as unavailable at 5 * 60 seconds
 const AGE_UNAVAILABLE = 5 * 60;
 
-// Mark update as recent when within last 2 seconds
-const RECENTNESS_THRESHOLD = 2;
+// Mark update as recent when within last 3 seconds
+const RECENTNESS_THRESHOLD = 3;
 
 // Attempt to retrieve new status every 60 seconds
 const RETRIEVAL_RATE = 60;
@@ -118,11 +114,9 @@ function setAge(st) {
   // Mark update as recent if both:
   // 1. The last retrieval yielded a status with a new timestamp and
   // 2. The last retrieval was relatively recent (last few seconds)
-  st.recentness =
-    st.timestamp !== st.previousTimestamp
-      ? Math.min(Math.max(1 - st.age / RECENTNESS_THRESHOLD, 0), 1)
-      : 0;
-  st.recentnessPercent = Math.floor(100 * st.recentness);
+  st.isRecent =
+    st.timestamp !== st.previousTimestamp &&
+    st.age < RECENTNESS_THRESHOLD;
 }
 
 export default {
