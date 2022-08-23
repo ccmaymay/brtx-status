@@ -13,6 +13,11 @@ DF_COMMAND = (
     'df',
     '-BG',
 )
+FREE_COMMAND = (
+    'free',
+    '-g',
+    '-w',
+)
 MOUNTPOINTS_TO_WATCH = ('/srv/local1', '/srv/local2')
 NVIDIA_SMI_COMMAND = (
     'nvidia-smi',
@@ -43,6 +48,15 @@ def parse_df_line(line: str) -> Dict[str, Any]:
     }
 
 
+def parse_free_line(line: str) -> Dict[str, Any]:
+    [name, total, used] = line.split()[:3]
+    return {
+        'name': (name[:-1] if name.endswith(':') else name).lower(),
+        'memory_used': int(used),
+        'memory_total': int(total),
+    }
+
+
 def get_mountpoint(disk_status: Dict[str, Any]) -> str:
     return disk_status['mountpoint']
 
@@ -50,6 +64,15 @@ def get_mountpoint(disk_status: Dict[str, Any]) -> str:
 timestamp = int(time())
 
 host = platform.node().split('.', 1)[0]
+
+free_status_dict = dict(
+    (free_status['name'], dict((k, v) for (k, v) in free_status.items() if k != 'name'))
+    for free_status in [
+        parse_free_line(line)
+        for (i, line) in enumerate(run_command_and_return_stdout(FREE_COMMAND).strip().split('\n'))
+        if i > 0
+    ]
+)
 
 status = {
     'host': host,
@@ -70,6 +93,8 @@ status = {
         ],
         key=get_mountpoint,
     ),
+    'memory': free_status_dict['mem'],
+    'swap': free_status_dict['swap'],
 }
 
 key_name = f'{host}.json'
