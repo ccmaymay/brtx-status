@@ -36,6 +36,7 @@ def parse_nvidia_smi_line(line: str) -> Dict[str, Any]:
         'utilization': float(values[0]),
         'memory_used': int(values[1]),
         'memory_total': int(values[2]),
+        'memory_unit': 'MiB',
     }
 
 
@@ -45,6 +46,7 @@ def parse_df_line(line: str) -> Dict[str, Any]:
         'mountpoint': mountpoint,
         'storage_used': int(used[:-1] if used.endswith('G') else used),
         'storage_total': int(size[:-1] if size.endswith('G') else size),
+        'storage_unit': 'GiB',
     }
 
 
@@ -54,6 +56,7 @@ def parse_free_line(line: str) -> Dict[str, Any]:
         'name': (name[:-1] if name.endswith(':') else name).lower(),
         'memory_used': int(used),
         'memory_total': int(total),
+        'memory_unit': 'GiB',
     }
 
 
