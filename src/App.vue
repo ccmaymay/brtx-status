@@ -1,6 +1,6 @@
 <template>
   <div class="container-sm">
-    <header>
+    <header class="mb-3">
       <h1>BRTX Status</h1>
     </header>
 
@@ -8,15 +8,14 @@
       <table class="table table-sm table-borderless align-middle text-center">
         <thead>
           <tr>
-            <th></th>
-            <th scope="col"></th>
-            <th scope="col" colspan="8" class="border-start">GPU</th>
-            <th scope="col" colspan="2" class="border-start">Disk</th>
+            <th scope="col" colspan="2" class="ps-3 pe-2"></th>
+            <th scope="col" colspan="8" class="border-start ps-3 pe-3">GPU</th>
+            <th scope="col" colspan="2" class="border-start ps-3 pe-3">Disk</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="status in sortedStatuses" :key="status.host">
-            <td>
+            <td class="ps-3">
               <i
                 class="bi"
                 :class="{
@@ -33,13 +32,17 @@
                 :title="`Updated ${Math.floor(status.age)} seconds ago`"
               ></i>
             </td>
-            <th scope="row">
+            <th scope="row" class="pe-2">
               {{ status.host }}
             </th>
             <td
               v-for="(gpu, i) in status.gpus"
               :key="i"
-              :class="{ 'border-start': i === 0 }"
+              :class="{
+                'border-start': i === 0,
+                'ps-3': i === 0,
+                'pe-3': i === status.gpus.length - 1,
+              }"
             >
               <meter
                 min="0"
@@ -54,7 +57,11 @@
             <td
               v-for="(disk, i) in status.disks"
               :key="disk.mountpoint"
-              :class="{ 'border-start': i === 0 }"
+              :class="{
+                'border-start': i === 0,
+                'ps-3': i === 0,
+                'pe-3': i === status.disks.length - 1,
+              }"
             >
               <meter
                 min="0"
@@ -195,5 +202,11 @@ export default {
 <style scoped>
 meter {
   width: 2em;
+}
+.pe-2 {
+  padding-right: 1em;
+}
+.ps-2 {
+  padding-left: 1em;
 }
 </style>
