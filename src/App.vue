@@ -84,9 +84,6 @@
           Report an issue
         </a>
       </p>
-      <p>
-        
-      </p>
     </footer>
   </div>
 </template>
