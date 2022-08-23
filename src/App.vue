@@ -72,16 +72,22 @@
             </td>
           </tr>
         </tbody>
-        <caption>
-          Last update:
-          {{
-            lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None"
-          }}
-        </caption>
       </table>
     </main>
 
-    <footer></footer>
+    <footer class="mt-3">
+      <p class="text-muted">
+        Last update:
+        {{ lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None" }}.
+        Updated about once per minute.
+        <a href="https://github.com/ccmaymay/brtx-status/issues/new">
+          Report an issue
+        </a>
+      </p>
+      <p>
+        
+      </p>
+    </footer>
   </div>
 </template>
 
