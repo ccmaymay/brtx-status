@@ -10,6 +10,7 @@
           <tr>
             <th scope="col" colspan="2" class="ps-3 pe-3"></th>
             <th scope="col" colspan="8" class="border-start ps-3 pe-3">GPU</th>
+            <th scope="col" class="border-start ps-3 pe-3">Load</th>
             <th scope="col" class="border-start ps-3 pe-3">Mem</th>
             <th scope="col" colspan="2" class="border-start ps-3 pe-3">Disk</th>
           </tr>
@@ -50,6 +51,17 @@
                 :title="`GPU ${i} memory: ${gpu.memoryUsedDescription}`"
               >
                 GPU {{ i }} memory: {{ gpu.memoryUsedDescription }}
+              </meter>
+            </td>
+            <td class="border-start ps-3 pe-3">
+              <meter
+                min="0"
+                max="100"
+                high="67"
+                :value="status.load.loadPercent"
+                :title="`Load: ${status.load.loadDescription}`"
+              >
+                Load: {{ status.load.loadDescription }}
               </meter>
             </td>
             <td class="border-start ps-3 pe-3">
@@ -137,6 +149,8 @@ function setAge(st) {
     });
     st.memory.memoryUsedPercent = 0;
     st.memory.memoryUsedDescription = "Unavailable";
+    st.load.loadPercent = 0;
+    st.load.loadDescription = "Unavailable";
   }
   // Use number of seconds since last retrieval as measurement of age
   st.age = clientAge;
@@ -212,6 +226,12 @@ export default {
         st.memory.memory_unit
       }`;
       st.memory.memoryUsedDescription = `${memoryUsedStr} used / ${memoryTotalStr} total`;
+      st.load.loadPercent = Math.ceil(
+        100 * (st.load.load_avg_5_m / st.load.num_cpus)
+      );
+      const loadStr = `${st.load.load_avg_5_m.toString()} (five-minute average)`;
+      const numCPUsStr = `${st.load.num_cpus.toString()} CPU cores`;
+      st.load.loadDescription = `${loadStr} / ${numCPUsStr}`;
 
       setAge(st);
 
