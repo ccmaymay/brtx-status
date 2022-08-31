@@ -18,11 +18,17 @@ FREE_COMMAND = (
     '-g',
     '-w',
 )
+LSCPU_COMMAND = (
+    'lscpu',
+)
 MOUNTPOINTS_TO_WATCH = ('/srv/local1', '/srv/local2')
 NVIDIA_SMI_COMMAND = (
     'nvidia-smi',
     '--query-gpu=utilization.gpu,memory.used,memory.total',
     '--format=csv,noheader,nounits',
+)
+UPTIME_COMMAND = (
+    'uptime',
 )
 
 
@@ -60,6 +66,17 @@ def parse_free_line(line: str) -> Dict[str, Any]:
     }
 
 
+def parse_uptime_line(line: str) -> Dict[str, Any]:
+    load_avgs = [float(t.rstrip(',')) for t in line.strip().split()[-3:]]
+    keys = [f'load_avg_{m}_m' for m in (1, 5, 15)]
+    return dict(zip(keys, load_avgs))
+
+
+def parse_lscpu_line(line: str) -> Dict[str, Any]:
+    num_cpus = int(line.strip().split()[-1])
+    return {'num_cpus': num_cpus}
+
+
 def get_mountpoint(disk_status: Dict[str, Any]) -> str:
     return disk_status['mountpoint']
 
@@ -76,6 +93,13 @@ free_status_dict = dict(
         if i > 0
     ]
 )
+
+[lscpu_status_dict] = [
+    parse_lscpu_line(line)
+    for line in run_command_and_return_stdout(LSCPU_COMMAND).strip().split('\n')
+    if line.startswith('CPU(s):')
+]
+uptime_status_dict = parse_uptime_line(run_command_and_return_stdout(UPTIME_COMMAND).strip())
 
 status = {
     'host': host,
@@ -98,6 +122,7 @@ status = {
     ),
     'memory': free_status_dict['mem'],
     'swap': free_status_dict['swap'],
+    'load': dict(list(lscpu_status_dict.items()) + list(uptime_status_dict.items())),
 }
 
 key_name = f'{host}.json'
