@@ -5,43 +5,39 @@
     </header>
 
     <main>
-      <table class="table table-sm table-borderless align-middle text-center">
-        <thead>
-          <tr>
-            <th scope="col" colspan="2" class="ps-3 pe-3"></th>
-            <th scope="col" colspan="8" class="border-start ps-3 pe-3">GPU</th>
-            <th scope="col" class="border-start ps-3 pe-3">Load</th>
-            <th scope="col" class="border-start ps-3 pe-3">Mem</th>
-            <th scope="col" colspan="2" class="border-start ps-3 pe-3">Disk</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="status in sortedStatuses" :key="status.host">
-            <td class="ps-3">
-              <i
-                class="bi"
-                :class="{
-                  'bi-check-circle-fill':
-                    !status.unavailable && status.isRecent,
-                  'bi-circle-fill': !status.unavailable && !status.isRecent,
-                  'bi-question-circle-fill': status.unavailable,
-                  'text-success': !status.unavailable,
-                  'text-warning': status.unavailable,
-                }"
-                :title="`Updated ${Math.floor(status.age)} seconds ago`"
-              ></i>
-            </td>
-            <th scope="row" class="pe-3">
+      <div
+        v-for="status in sortedStatuses"
+        :key="status.host"
+        class="d-flex align-items-center m-3"
+      >
+        <div class="d-flex">
+          <div class="me-2">
+            <i
+              class="bi"
+              :class="{
+                'bi-check-circle-fill':
+                  !status.unavailable && status.isRecent,
+                'bi-circle-fill': !status.unavailable && !status.isRecent,
+                'bi-question-circle-fill': status.unavailable,
+                'text-success': !status.unavailable,
+                'text-warning': status.unavailable,
+              }"
+              :title="`Updated ${Math.floor(status.age)} seconds ago`"
+            ></i>
+          </div>
+          <div>
+            <strong>
               {{ status.host }}
-            </th>
-            <td
+            </strong>
+          </div>
+        </div>
+        <div class="border-start ms-3 ps-3">
+          <div class="d-flex">
+            <div class="me-2">GPU</div>
+            <div
               v-for="(gpu, i) in status.gpus"
               :key="i"
-              :class="{
-                'border-start': i === 0,
-                'ps-3': i === 0,
-                'pe-3': i === status.gpus.length - 1,
-              }"
+              class="me-1"
             >
               <meter
                 min="0"
@@ -52,8 +48,11 @@
               >
                 GPU {{ i }} memory: {{ gpu.memoryUsedDescription }}
               </meter>
-            </td>
-            <td class="border-start ps-3 pe-3">
+            </div>
+          </div>
+          <div class="d-flex">
+            <div class="me-2">Load</div>
+            <div>
               <meter
                 min="0"
                 max="100"
@@ -63,8 +62,11 @@
               >
                 Load: {{ status.load.loadDescription }}
               </meter>
-            </td>
-            <td class="border-start ps-3 pe-3">
+            </div>
+          </div>
+          <div class="d-flex">
+            <div class="me-2">Mem</div>
+            <div>
               <meter
                 min="0"
                 max="100"
@@ -74,15 +76,14 @@
               >
                 Main memory: {{ status.memory.memoryUsedDescription }}
               </meter>
-            </td>
-            <td
+            </div>
+          </div>
+          <div class="d-flex">
+            <div class="me-2">Disk</div>
+            <div
               v-for="(disk, i) in status.disks"
               :key="disk.mountpoint"
-              :class="{
-                'border-start': i === 0,
-                'ps-3': i === 0,
-                'pe-3': i === status.disks.length - 1,
-              }"
+              class="me-1"
             >
               <meter
                 min="0"
@@ -93,10 +94,10 @@
               >
                 {{ disk.mountpoint }}: {{ disk.storageUsedDescription }}
               </meter>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <footer class="mt-3">
