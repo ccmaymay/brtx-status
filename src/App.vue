@@ -8,7 +8,7 @@
       <div
         v-for="status in sortedStatuses"
         :key="status.host"
-        class="d-flex align-items-center m-3"
+        class="d-flex align-items-center m-4"
       >
         <div class="d-flex">
           <div class="me-2">
