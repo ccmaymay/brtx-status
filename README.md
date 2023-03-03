@@ -1,6 +1,6 @@
 # brtx-status
 
-This template should help get you started developing with Vue 3 in Vite.
+A single-page web application displaying the status of BRTX computational resources.  Status updates are performed by `update-brtx-status.py` under my account on each node (and scheduled by cron).
 
 ## Recommended IDE Setup
 
