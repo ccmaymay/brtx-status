@@ -81,7 +81,7 @@
           <div class="d-flex">
             <div class="me-2">Disk</div>
             <div
-              v-for="(disk, i) in status.disks"
+              v-for="disk in status.disks"
               :key="disk.mountpoint"
               class="me-1"
             >
