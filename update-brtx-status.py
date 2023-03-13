@@ -4,7 +4,7 @@ import json
 import platform
 from subprocess import run
 from time import time
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, List, Sequence
 
 import boto3
 
@@ -32,8 +32,24 @@ UPTIME_COMMAND = (
 )
 
 
-def run_command_and_return_stdout(command: Sequence[str]) -> str:
-    return run(command, check=True, capture_output=True, text=True).stdout
+def make_sinfo_command(host: str) -> Sequence[str]:
+    return (
+        'sinfo',
+        '-N',
+        '-h',
+        '-n',
+        host,
+        '-o',
+        '%P',
+    )
+
+
+def run_command_and_return_stdout(command: Sequence[str], timeout: int = 5) -> str:
+    return run(command, check=True, capture_output=True, text=True, timeout=timeout).stdout
+
+
+def parse_sinfo(text: str) -> List[str]:
+    return [line.strip() for line in text.strip().split('\n') if line.strip()]
 
 
 def parse_nvidia_smi_line(line: str) -> Dict[str, Any]:
@@ -106,7 +122,7 @@ status = {
     'timestamp': timestamp,
     'gpus': [
         parse_nvidia_smi_line(line)
-        for line in run_command_and_return_stdout(NVIDIA_SMI_COMMAND).strip().split('\n')
+        for line in run_command_and_return_stdout(NVIDIA_SMI_COMMAND, timeout=30).strip().split('\n')
     ],
     'disks': sorted(
         [
@@ -123,6 +139,7 @@ status = {
     'memory': free_status_dict['mem'],
     'swap': free_status_dict['swap'],
     'load': dict(list(lscpu_status_dict.items()) + list(uptime_status_dict.items())),
+    'partitions': parse_sinfo(run_command_and_return_stdout(make_sinfo_command(host))),
 }
 
 key_name = f'{host}.json'
