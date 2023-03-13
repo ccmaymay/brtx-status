@@ -8,28 +8,39 @@
       <div
         v-for="status in sortedStatuses"
         :key="status.host"
-        class="d-flex align-items-center m-4"
+        class="d-flex m-4"
       >
-        <div class="d-flex">
-          <div class="me-2">
-            <i
-              class="bi"
-              :class="{
-                'bi-check-circle-fill':
-                  !status.unavailable && status.isRecent,
-                'bi-circle-fill': !status.unavailable && !status.isRecent,
-                'bi-question-circle-fill': status.unavailable,
-                'text-success': !status.unavailable,
-                'text-warning': status.unavailable,
-              }"
-              :title="`Updated ${Math.floor(status.age)} seconds ago`"
-            ></i>
+        <div>
+          <div class="d-flex">
+            <div class="me-2">
+              <i
+                class="bi"
+                :class="{
+                  'bi-check-circle-fill':
+                    !status.unavailable && status.isRecent,
+                  'bi-circle-fill': !status.unavailable && !status.isRecent,
+                  'bi-question-circle-fill': status.unavailable,
+                  'text-success': !status.unavailable,
+                  'text-warning': status.unavailable,
+                }"
+                :title="`Updated ${Math.floor(status.age)} seconds ago`"
+              ></i>
+            </div>
+            <div>
+              <strong>
+                {{ status.host }}
+              </strong>
+            </div>
           </div>
-          <div>
-            <strong>
-              {{ status.host }}
-            </strong>
-          </div>
+          <ul class="list-unstyled text-end">
+            <li
+              v-for="partition in status.partitions"
+              :key="partition"
+              class="text-muted small"
+            >
+              {{ partition }}
+            </li>
+          </ul>
         </div>
         <div class="border-start ms-3 ps-3">
           <div class="d-flex">
@@ -152,6 +163,7 @@ function setAge(st) {
     st.memory.memoryUsedDescription = "Unavailable";
     st.load.loadPercent = 0;
     st.load.loadDescription = "Unavailable";
+    st.partitions = [];
   }
   // Use number of seconds since last retrieval as measurement of age
   st.age = clientAge;
