@@ -126,7 +126,7 @@
 
 <script>
 import axios from "axios";
-import { sortBy } from "lodash";
+import { last, sortBy } from "lodash";
 
 // Mark node as unavailable at 5 * 60 seconds
 const AGE_UNAVAILABLE = 5 * 60;
@@ -158,6 +158,9 @@ function setAge(st) {
     st.disks.forEach(function (disk) {
       disk.storageUsedPercent = 0;
       disk.storageUsedDescription = "Unavailable";
+      disk.topUser = "Unavailable";
+      disk.topUserPercent = 0;
+      disk.topUserDescription = "Unavailable";
     });
     st.memory.memoryUsedPercent = 0;
     st.memory.memoryUsedDescription = "Unavailable";
@@ -228,6 +231,23 @@ export default {
           disk.storage_unit
         }`;
         disk.storageUsedDescription = `${storageUsedStr} used / ${storageTotalStr} total`;
+        const topUserEntry = last(sortBy(
+          Object.entries(disk.per_user.storage_used).map(([uid, storage_used]) => ({uid, storage_used})),
+          ['storage_used']
+        ));
+        if (topUserEntry) {
+          disk.topUser = topUserEntry.uid;
+          disk.topUserPercent = Math.ceil(
+            100 * (topUserEntry.storage_used / disk.storage_total)
+          );
+          disk.topUserDescription = `${topUserEntry.storage_used.toString()} ${
+            disk.storage_unit
+          }`;
+        } else {
+          disk.topUser = "";
+          disk.topUserPercent = 0;
+          disk.topUserDescription = "";
+        }
       });
       st.memory.memoryUsedPercent = Math.ceil(
         100 * (st.memory.memory_used / st.memory.memory_total)
