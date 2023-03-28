@@ -2,6 +2,8 @@
 
 import json
 import platform
+from collections import Counter
+from pathlib import Path
 from subprocess import run
 from time import time
 from typing import Any, Dict, List, Sequence
@@ -21,7 +23,10 @@ FREE_COMMAND = (
 LSCPU_COMMAND = (
     'lscpu',
 )
-MOUNTPOINTS_TO_WATCH = ('/srv/local1', '/srv/local2')
+MOUNTPOINT_NAMES = {
+    '/srv/local1': 'local1',
+    '/srv/local2': 'local2',
+}
 NVIDIA_SMI_COMMAND = (
     'nvidia-smi',
     '--query-gpu=utilization.gpu,memory.used,memory.total',
@@ -97,6 +102,27 @@ def get_mountpoint(disk_status: Dict[str, Any]) -> str:
     return disk_status['mountpoint']
 
 
+def get_disk_users(host: str, mountpoint: str) -> Dict[str, Any]:
+    disk_name = MOUNTPOINT_NAMES[mountpoint]
+    sorted_paths = sorted(
+        Path('~cmay').expanduser().glob(f'{host}-{disk_name}-*.txt'),
+        key=lambda p: p.name,
+        reverse=True,
+    )
+    storage_used: Dict[str, int] = Counter()
+    if sorted_paths:
+        path = sorted_paths[0]
+        date_updated = path.stem.split('-')[-1]
+        with open(path) as f:
+            for line in f:
+                if line.strip():
+                    [gb_used_str, dir_path_str] = line.strip().split()
+                    storage_used[str(Path(dir_path_str).stat().st_uid)] += int(gb_used_str)
+    else:
+        date_updated = None
+    return dict(storage_used=storage_used, date_updated=date_updated)
+
+
 timestamp = int(time())
 
 host = platform.node().split('.', 1)[0]
@@ -126,13 +152,13 @@ status = {
     ],
     'disks': sorted(
         [
-            disk_status
+            dict(**disk_status, per_user=get_disk_users(host, get_mountpoint(disk_status)))
             for disk_status in [
                 parse_df_line(line)
                 for (i, line) in enumerate(run_command_and_return_stdout(DF_COMMAND).strip().split('\n'))
                 if i > 0
             ]
-            if disk_status['mountpoint'] in MOUNTPOINTS_TO_WATCH
+            if disk_status['mountpoint'] in MOUNTPOINT_NAMES
         ],
         key=get_mountpoint,
     ),
