@@ -131,11 +131,11 @@ import { last, sortBy } from "lodash";
 // Mark node as unavailable at 15 minutes
 const AGE_UNAVAILABLE = 15 * 60;
 
-// Mark update as recent when within last 3 seconds
-const RECENTNESS_THRESHOLD = 3;
+// Mark update as recent when within last 4 seconds
+const RECENTNESS_THRESHOLD = 4;
 
-// Attempt to retrieve new status every 60 seconds
-const RETRIEVAL_RATE = 60;
+// Attempt to retrieve new status every 2 minutes
+const RETRIEVAL_RATE = 2 * 60;
 
 // Names of nodes (hosts) to show
 const NODES = [601, 602, 603, 604, 605, 606].map((i) => `brtx${i}`);
