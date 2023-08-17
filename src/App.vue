@@ -113,9 +113,8 @@
 
     <footer class="mt-3">
       <p class="text-muted">
-        Last update:
-        {{ lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None" }}.
-        Updated about once per minute.
+        Page updated {{ lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None" }}.
+        Stats updated every few minutes.
         <a href="https://github.com/ccmaymay/brtx-status/issues/new">
           Report an issue
         </a>
