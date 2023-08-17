@@ -128,8 +128,8 @@
 import axios from "axios";
 import { last, sortBy } from "lodash";
 
-// Mark node as unavailable at 5 * 60 seconds
-const AGE_UNAVAILABLE = 5 * 60;
+// Mark node as unavailable at 15 minutes
+const AGE_UNAVAILABLE = 15 * 60;
 
 // Mark update as recent when within last 3 seconds
 const RECENTNESS_THRESHOLD = 3;
