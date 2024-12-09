@@ -172,5 +172,7 @@ key_name = f'{host}.json'
 s3 = boto3.resource('s3')
 s3.Bucket(BUCKET_NAME).put_object(
     Key=key_name,
-    Body=json.dumps(status).encode('utf-8')
+    Body=json.dumps(status).encode('utf-8'),
+    CacheControl='no-cache',
+    ContentType='application/json',
 )
