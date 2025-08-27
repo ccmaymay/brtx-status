@@ -2,9 +2,15 @@
   <div class="container-sm">
     <header class="mb-3">
       <h1>BRTX Status</h1>
+      <div v-if="siteDisabled" class="d-flex">
+        <div class="alert alert-warning" role="alert">
+          <i class="bi bi-exclamation-triangle"></i>
+          This page is no longer updated.
+        </div>
+      </div>
     </header>
 
-    <main>
+    <main v-if="!siteDisabled">
       <div
         v-for="status in sortedStatuses"
         :key="status.host"
@@ -111,7 +117,7 @@
       </div>
     </main>
 
-    <footer class="mt-3">
+    <footer v-if="!siteDisabled" class="mt-3">
       <p class="text-muted">
         Page updated {{ lastUpdateDatetime ? lastUpdateDatetime.toLocaleString() : "None" }}.
         Stats updated every few minutes.
@@ -187,6 +193,9 @@ export default {
   computed: {
     sortedStatuses() {
       return sortBy(Object.values(this.statuses), "host");
+    },
+    siteDisabled() {
+      return import.meta.env.VITE_SITE_DISABLED;
     },
   },
   methods: {
@@ -274,10 +283,12 @@ export default {
     },
   },
   mounted() {
-    this.retrieveStatuses();
-    setInterval(this.retrieveStatuses, 1000 * RETRIEVAL_RATE);
-    this.setAges();
-    setInterval(this.setAges, 100);
+    if (! this.siteDisabled) {
+      this.retrieveStatuses();
+      setInterval(this.retrieveStatuses, 1000 * RETRIEVAL_RATE);
+      this.setAges();
+      setInterval(this.setAges, 100);
+    }
   },
 };
 </script>
